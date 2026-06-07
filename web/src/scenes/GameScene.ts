@@ -102,11 +102,16 @@ export class GameScene extends Phaser.Scene {
   private finished = false;
 
   private hpBar!: Phaser.GameObjects.Rectangle;
+  private skillBar!: Phaser.GameObjects.Rectangle;
+  private bladeSlot!: Phaser.GameObjects.Rectangle;
+  private bowSlot!: Phaser.GameObjects.Rectangle;
   private weaponText!: Phaser.GameObjects.Text;
   private waveText!: Phaser.GameObjects.Text;
   private enemyCountText!: Phaser.GameObjects.Text;
+  private waveMarkers: Phaser.GameObjects.Rectangle[] = [];
   private bossBarBack!: Phaser.GameObjects.Rectangle;
   private bossBar!: Phaser.GameObjects.Rectangle;
+  private bossName!: Phaser.GameObjects.Text;
   private announcement!: Phaser.GameObjects.Text;
 
   constructor() {
@@ -127,6 +132,7 @@ export class GameScene extends Phaser.Scene {
     for (const background of WAVES.map((wave) => wave.background)) {
       this.load.image(background, `${base}/backgrounds/${background}.png`);
     }
+    this.load.image('kael-portrait', `${base}/npcs-ui/sprite-039.png`);
     for (let index = 1; index <= 76; index += 1) {
       const file = `sprite-${String(index).padStart(3, '0')}.png`;
       this.load.image(`prop-${index}`, `${base}/environment/tiles-props/${file}`);
@@ -225,7 +231,8 @@ export class GameScene extends Phaser.Scene {
       this.applyContactDamage(this.boss.getDamage());
     }
 
-    this.hpBar.width = 276 * Phaser.Math.Clamp(this.player.hp / this.player.maxHp, 0, 1);
+    this.hpBar.width = 212 * Phaser.Math.Clamp(this.player.hp / this.player.maxHp, 0, 1);
+    this.skillBar.width = 212 * Phaser.Math.Clamp(1 - this.skillCooldown / 2200, 0, 1);
     this.enemyCountText.setText(this.boss?.active ? '' : `남은 적 ${this.enemiesAlive}`);
     if (this.boss?.active) {
       this.bossBar.width = 440 * Phaser.Math.Clamp(this.boss.hp / this.boss.maxHp, 0, 1);
@@ -245,6 +252,7 @@ export class GameScene extends Phaser.Scene {
     this.waveText.setText(wave.title);
     this.showAnnouncement(`${wave.title}\n${wave.subtitle}`, 1700);
     this.enemiesAlive = wave.enemies.length;
+    this.waveMarkers.forEach((marker, index) => marker.setFillStyle(index <= this.waveIndex ? 0xd29a4a : 0x43362d, index <= this.waveIndex ? 1 : 0.8));
     this.player.setPosition(130, FLOOR_Y - 20);
 
     const spawnPoints = [760, 640, 850, 540, 710, 900];
@@ -264,10 +272,23 @@ export class GameScene extends Phaser.Scene {
       (defeated) => this.enemyDefeated(defeated),
     );
     this.enemies.add(enemy);
+    const targetScale = enemy.scaleX;
+    enemy.setAlpha(0).setScale(targetScale * 0.35);
+    this.tweens.add({
+      targets: enemy,
+      alpha: 1,
+      scaleX: targetScale,
+      scaleY: targetScale,
+      duration: kind === 'boss' ? 680 : 380,
+      ease: 'Back.Out',
+    });
     if (kind === 'boss') {
       this.boss = enemy;
       this.bossBarBack.setVisible(true);
       this.bossBar.setVisible(true);
+      this.bossName.setVisible(true);
+      this.cameras.main.shake(450, 0.009);
+      this.showAnnouncement('식인 오우거 가름\n잿빛 마을의 포식자', 1800);
       this.startBossPatterns();
     }
   }
@@ -290,11 +311,13 @@ export class GameScene extends Phaser.Scene {
 
   private enemyDefeated(enemy: Enemy) {
     this.enemiesAlive -= 1;
+    this.stageVisuals.burst(enemy.x, enemy.y - (enemy.kind === 'boss' ? 110 : 70), enemy.kind === 'boss' ? 0xff744d : 0xdba15e, enemy.kind === 'boss' ? 28 : 12);
     if (enemy.kind === 'boss') {
       this.bossPatternEvent?.remove(false);
       this.boss = undefined;
       this.bossBarBack.setVisible(false);
       this.bossBar.setVisible(false);
+      this.bossName.setVisible(false);
     }
     if (this.enemiesAlive <= 0) this.time.delayedCall(1300, () => this.startNextWave());
   }
@@ -395,29 +418,61 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createHud() {
-    this.add.rectangle(18, 18, 280, 25, 0x08090d, 0.85).setOrigin(0).setDepth(100);
-    this.hpBar = this.add.rectangle(20, 20, 276, 21, 0xc52f2f).setOrigin(0).setDepth(101);
-    this.weaponText = this.add.text(18, 51, '', {
-      fontFamily: 'sans-serif', fontSize: '15px', color: '#ffffff', stroke: '#000000', strokeThickness: 3,
-    }).setDepth(100);
-    this.waveText = this.add.text(WORLD_W - 18, 18, '', {
-      fontFamily: 'sans-serif', fontSize: '18px', color: '#ffd58a', stroke: '#000000', strokeThickness: 4,
-    }).setOrigin(1, 0).setDepth(100);
-    this.enemyCountText = this.add.text(WORLD_W - 18, 44, '', {
-      fontFamily: 'sans-serif', fontSize: '15px', color: '#ffffff', stroke: '#000000', strokeThickness: 3,
-    }).setOrigin(1, 0).setDepth(100);
+    this.add.rectangle(14, 14, 294, 72, 0x100c0a, 0.82).setOrigin(0).setStrokeStyle(1, 0xa4753d, 0.8).setDepth(100);
+    this.add.image(48, 51, 'kael-portrait').setScale(0.31).setDepth(102);
+    this.add.text(82, 20, 'KAEL ARDEN', {
+      fontFamily: 'Georgia, serif', fontSize: '13px', fontStyle: 'bold', color: '#e7c48c',
+    }).setDepth(103);
+    this.add.rectangle(80, 43, 218, 15, 0x080706, 0.95).setOrigin(0).setStrokeStyle(1, 0x6e4a2b).setDepth(101);
+    this.hpBar = this.add.rectangle(83, 46, 212, 9, 0xb9312f).setOrigin(0).setDepth(102);
+    this.add.rectangle(80, 64, 218, 10, 0x080706, 0.95).setOrigin(0).setStrokeStyle(1, 0x6e4a2b).setDepth(101);
+    this.skillBar = this.add.rectangle(83, 67, 212, 4, 0xd09a45).setOrigin(0).setDepth(102);
+
+    this.add.text(WORLD_W / 2, 18, 'STAGE 01  ·  ASHEN BORDER VILLAGE', {
+      fontFamily: 'Georgia, serif', fontSize: '13px', color: '#d8b986', letterSpacing: 2,
+      stroke: '#140d09', strokeThickness: 3,
+    }).setOrigin(0.5, 0).setDepth(104);
+
+    this.add.rectangle(WORLD_W - 14, 14, 250, 72, 0x100c0a, 0.78).setOrigin(1, 0).setStrokeStyle(1, 0xa4753d, 0.72).setDepth(100);
+    this.waveText = this.add.text(WORLD_W - 26, 22, '', {
+      fontFamily: 'Georgia, serif', fontSize: '17px', fontStyle: 'bold', color: '#f1d098', stroke: '#160d08', strokeThickness: 3,
+    }).setOrigin(1, 0).setDepth(103);
+    this.enemyCountText = this.add.text(WORLD_W - 26, 47, '', {
+      fontFamily: 'sans-serif', fontSize: '13px', color: '#e6ddd0', stroke: '#000000', strokeThickness: 3,
+    }).setOrigin(1, 0).setDepth(103);
+    this.waveMarkers = Array.from({ length: WAVES.length }, (_, index) => (
+      this.add.rectangle(WORLD_W - 224 + index * 25, 68, 17, 4, 0x43362d, 0.8).setOrigin(0).setDepth(103)
+    ));
+
+    this.bladeSlot = this.add.rectangle(18, WORLD_H - 56, 128, 38, 0x2a1b13, 0.9).setOrigin(0).setStrokeStyle(2, 0xd49a4e).setDepth(100);
+    this.bowSlot = this.add.rectangle(154, WORLD_H - 56, 128, 38, 0x171310, 0.8).setOrigin(0).setStrokeStyle(1, 0x6b5946).setDepth(100);
+    this.add.text(28, WORLD_H - 48, '[1]  RELIC BLADE', { fontFamily: 'Georgia, serif', fontSize: '12px', color: '#f2d39c' }).setDepth(103);
+    this.add.text(164, WORLD_H - 48, '[2]  HUNTER BOW', { fontFamily: 'Georgia, serif', fontSize: '12px', color: '#d4c5af' }).setDepth(103);
+    this.weaponText = this.add.text(28, WORLD_H - 31, '', {
+      fontFamily: 'sans-serif', fontSize: '10px', color: '#b9aa96',
+    }).setDepth(103);
+    this.add.text(WORLD_W - 18, WORLD_H - 18, 'A / D 이동    SPACE 점프    C 공격    X 렐릭 스킬', {
+      fontFamily: 'sans-serif', fontSize: '11px', color: '#c7b9a4', stroke: '#080604', strokeThickness: 3,
+    }).setOrigin(1, 1).setDepth(103);
+
     this.announcement = this.add.text(WORLD_W / 2, 120, '', {
-      fontFamily: 'sans-serif', fontSize: '28px', color: '#fff1c9', align: 'center', stroke: '#210d08', strokeThickness: 6,
+      fontFamily: 'Georgia, serif', fontSize: '27px', fontStyle: 'bold', color: '#f6dca9', align: 'center', stroke: '#210d08', strokeThickness: 6,
     }).setOrigin(0.5).setDepth(110).setAlpha(0);
-    this.bossBarBack = this.add.rectangle(WORLD_W / 2, WORLD_H - 30, 448, 20, 0x090909, 0.9).setVisible(false).setDepth(100);
-    this.bossBar = this.add.rectangle(WORLD_W / 2 - 220, WORLD_H - 30, 440, 14, 0x9e211e).setOrigin(0, 0.5).setVisible(false).setDepth(101);
+    this.bossName = this.add.text(WORLD_W / 2, WORLD_H - 76, 'GARM · THE MAN-EATING OGRE', {
+      fontFamily: 'Georgia, serif', fontSize: '13px', color: '#e8c48a', stroke: '#120907', strokeThickness: 3,
+    }).setOrigin(0.5).setVisible(false).setDepth(103);
+    this.bossBarBack = this.add.rectangle(WORLD_W / 2, WORLD_H - 58, 448, 18, 0x090706, 0.94).setStrokeStyle(1, 0xa7753b).setVisible(false).setDepth(100);
+    this.bossBar = this.add.rectangle(WORLD_W / 2 - 220, WORLD_H - 58, 440, 10, 0xa62d28).setOrigin(0, 0.5).setVisible(false).setDepth(101);
     this.setWeapon('blade');
   }
 
   private setWeapon(weapon: WeaponKind) {
     this.currentWeapon = weapon;
-    const name = weapon === 'blade' ? '칼 [1] · X 대시' : '활 [2] · X 강궁';
-    this.weaponText.setText(`${name}\n이동 A/D · 점프 Space · 공격 C`);
+    this.bladeSlot.setFillStyle(weapon === 'blade' ? 0x2a1b13 : 0x171310, weapon === 'blade' ? 0.92 : 0.8)
+      .setStrokeStyle(weapon === 'blade' ? 2 : 1, weapon === 'blade' ? 0xd49a4e : 0x6b5946);
+    this.bowSlot.setFillStyle(weapon === 'bow' ? 0x2a1b13 : 0x171310, weapon === 'bow' ? 0.92 : 0.8)
+      .setStrokeStyle(weapon === 'bow' ? 2 : 1, weapon === 'bow' ? 0xd49a4e : 0x6b5946);
+    this.weaponText.setText(weapon === 'blade' ? 'X · DASH STRIKE' : 'X · POWER SHOT').setX(weapon === 'blade' ? 28 : 164);
   }
 
   private showAnnouncement(message: string, duration: number) {
