@@ -23,6 +23,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
     this.setCollideWorldBounds(true);
     this.setDepth(30);
+    this.setFlipX(false);
 
     // 모든 프레임은 320x280 캔버스의 발 중심에 정렬되어 있다.
     this.setScale(0.55);

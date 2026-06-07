@@ -149,8 +149,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   create() {
+    const requestedWave = import.meta.env.DEV
+      ? Number(new URLSearchParams(window.location.search).get('wave') ?? '1')
+      : 1;
     this.finished = false;
-    this.waveIndex = -1;
+    this.waveIndex = Phaser.Math.Clamp(requestedWave, 1, WAVES.length) - 2;
     this.enemiesAlive = 0;
     this.attackCooldown = 0;
     this.skillCooldown = 0;
