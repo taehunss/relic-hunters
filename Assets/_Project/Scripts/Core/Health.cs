@@ -21,11 +21,15 @@ public class Health : MonoBehaviour, IDamageable
     /// <summary>사망 시 호출되는 이벤트 (게임오버/드롭 등에 연결).</summary>
     public event System.Action Died;
 
+    /// <summary>체력이 바뀔 때 호출 (current, max). HUD 갱신용.</summary>
+    public event System.Action<int, int> HealthChanged;
+
     private int _currentHealth;
     private SpriteRenderer _sprite;
     private Color _originalColor;
 
     public int CurrentHealth => _currentHealth;
+    public int MaxHealth => maxHealth;
     public bool IsDead => _currentHealth <= 0;
 
     private void Awake()
@@ -41,6 +45,7 @@ public class Health : MonoBehaviour, IDamageable
 
         _currentHealth -= amount;
         Debug.Log($"{name} 가 {amount} 데미지를 받음 → 남은 HP {_currentHealth}");
+        HealthChanged?.Invoke(_currentHealth, maxHealth);
 
         if (_sprite != null)
         {

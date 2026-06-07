@@ -21,9 +21,17 @@ public class PlayerController : MonoBehaviour
     [Tooltip("어떤 레이어를 '바닥'으로 볼지")]
     [SerializeField] private LayerMask groundLayer;
 
+    [Header("점프 손맛")]
+    [Tooltip("바닥에서 떨어진 뒤에도 점프를 허용하는 짧은 시간(초)")]
+    [SerializeField] private float coyoteTime = 0.1f;
+    [Tooltip("착지 직전에 점프를 미리 눌러도 인정해주는 시간(초)")]
+    [SerializeField] private float jumpBufferTime = 0.1f;
+
     private Rigidbody2D _rb;
     private SpriteRenderer _sprite;
     private float _moveX;
+    private float _coyoteTimer;
+    private float _jumpBufferTimer;
 
     /// <summary>플레이어가 바라보는 방향(좌/우). 무기 조준에 사용. (기본: 오른쪽)</summary>
     public Vector2 FacingDirection { get; private set; } = Vector2.right;
@@ -47,9 +55,25 @@ public class PlayerController : MonoBehaviour
 
     public void OnJump(InputValue value)
     {
-        // 바닥에 닿아 있을 때만 점프
-        if (value.isPressed && IsGrounded())
+        // 실제 점프는 Update에서 타이머로 처리. 여기선 "방금 점프를 눌렀다"만 기록.
+        if (value.isPressed) _jumpBufferTimer = jumpBufferTime;
+    }
+
+    private void Update()
+    {
+        // 코요테 타이머: 바닥에 있으면 가득 채우고, 공중이면 줄인다.
+        if (IsGrounded()) _coyoteTimer = coyoteTime;
+        else _coyoteTimer -= Time.deltaTime;
+
+        _jumpBufferTimer -= Time.deltaTime;
+
+        // 최근에 점프를 눌렀고(버퍼) + 최근까지 바닥이었으면(코요테) → 점프!
+        if (_jumpBufferTimer > 0f && _coyoteTimer > 0f)
+        {
             _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, jumpForce);
+            _jumpBufferTimer = 0f;
+            _coyoteTimer = 0f;
+        }
     }
 
     private void FixedUpdate()
