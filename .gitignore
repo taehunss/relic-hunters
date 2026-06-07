@@ -1,47 +1,10 @@
-# Unity generated / build artifacts ----------------------------------------
-[Ll]ibrary/
-[Tt]emp/
-[Oo]bj/
-[Bb]uild/
-[Bb]uilds/
-[Ll]ogs/
-[Uu]ser[Ss]ettings/
-[Mm]emoryCaptures/
+# Web build artifacts and dependencies
+node_modules/
+dist/
+.vite/
+*.local
 
-# Asset meta data should only be ignored when the corresponding asset is also ignored
-!/[Aa]ssets/**/*.meta
-
-# Unity3D generated meta files
-*.pidb.meta
-*.pdb.meta
-*.mdb.meta
-
-# Unity3D generated file on crash reports
-sysinfo.txt
-
-# Builds
-*.apk
-*.aab
-*.unitypackage
-*.app
-
-# IDE / OS ------------------------------------------------------------------
-.vs/
+# IDE / OS
 .vscode/
 .idea/
-*.csproj
-*.sln
-*.suo
-*.user
-*.userprefs
 .DS_Store
-
-# Rider
-.idea/
-*.DotSettings.user
-
-# Crashlytics
-crashlytics-build.properties
-
-# 임시 Unity 배치/실행 로그 (루트)
-/.unity-*.log

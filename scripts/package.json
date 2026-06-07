@@ -1,0 +1,11 @@
+{
+  "name": "relic-hunter-scripts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "normalize-kael": "node normalize-spritesheet.mjs"
+  },
+  "devDependencies": {
+    "sharp": "^0.33.5"
+  }
+}

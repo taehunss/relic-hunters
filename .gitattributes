@@ -23,13 +23,5 @@
 *.ttf  filter=lfs diff=lfs merge=lfs -text
 *.otf  filter=lfs diff=lfs merge=lfs -text
 
-# --- 3D / misc binaries (future-proofing) ---
+# --- 3D binaries (future-proofing) ---
 *.fbx  filter=lfs diff=lfs merge=lfs -text
-*.anim filter=lfs diff=lfs merge=lfs -text
-
-# --- Force Unity YAML text assets to be treated as text (good merges) ---
-*.unity   merge=unityyamlmerge eol=lf
-*.prefab  merge=unityyamlmerge eol=lf
-*.asset   merge=unityyamlmerge eol=lf
-*.meta    merge=unityyamlmerge eol=lf
-*.controller merge=unityyamlmerge eol=lf

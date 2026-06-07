@@ -27,18 +27,6 @@ Flip the renderer on the X axis for left-facing movement.
   - Row 2: dismiss Curtana
   - Row 3: parry and counter
   - Row 4: relic awakening
-- `kael-idle-8f-unity-grid-270x724.png`
-  - Earlier standalone idle exploration sheet.
-
-## Unity Import
-
-- Texture Type: `Sprite (2D and UI)`
-- Sprite Mode: `Multiple`
-- Filter Mode: `Point (no filter)`
-- Compression: `None`
-- Generate Mip Maps: disabled
-- Pivot: bottom center
-
 ## Production Note
 
 These sheets are the generated animation masters. Before final release, normalize
