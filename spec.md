@@ -177,28 +177,35 @@ IWeaponBehaviour (인터페이스)          ← Attack(), UseSkill(), OnEquip(),
 ---
 
 ## 7. 오디오
+
 - BGM(스테이지/보스) + SFX(타격/스킬/UI). AudioMixer로 BGM/SFX 그룹 분리, 볼륨 노출
 - 동일 SFX 연타 시 풀링된 AudioSource 사용 (피격음 등)
 
 ---
 
-## 8. 성능 / 모바일 고려사항
-- **타깃 프레임레이트** `Application.targetFrameRate = 60` 설정 (모바일 발열/배터리 균형 고려해 옵션화)
-- Sprite Atlas로 드로우콜 최소화, 텍스처 압축(ASTC) 적용
+## 8. 성능 고려사항 (데스크톱)
+
+데스크톱은 모바일보다 여유롭지만, 투사체·이펙트가 많은 액션 게임은 여전히 아래를 지킵니다.
+
+- **타깃 프레임레이트** `Application.targetFrameRate = 60` (옵션으로 V-Sync/프레임 상한 노출)
+- Sprite Atlas로 드로우콜 최소화
 - `Update()` 남용 금지 — 이벤트/코루틴/타이머로 대체
 - GC 압박 줄이기: 풀링, 구조체 활용, 매 프레임 `new` 금지
-- Profiler로 모바일 실기 측정 (에디터 수치와 다름)
+- Profiler로 병목 측정. 사양 낮은 노트북도 고려해 그래픽 옵션(이펙트 품질) 한두 단계 제공
 
 ---
 
 ## 9. 빌드 & 배포 파이프라인
+
 | 플랫폼 | 방법 |
 |---|---|
-| **PC (Windows/Mac)** | Build Settings → Standalone. 가장 빠른 반복 테스트 환경 |
-| **Android** | `.aab`(Play Store) / `.apk`(테스트). Keystore 서명 필요 |
-| **iOS** | Xcode 프로젝트 출력 → Mac + Apple Developer 계정으로 빌드/서명 |
-- 개발 초기엔 **PC + Unity Editor**에서 모든 로직 검증 → 마일스톤마다 모바일 실기 빌드로 확인
-- (선택) GitHub Actions / Unity Cloud Build로 자동 빌드
+| **Windows** | Build Settings → Windows Standalone (`.exe`). 주력 배포 타깃 |
+| **macOS** | Standalone (`.app`). 배포 시 공증(notarization)은 추후 고려 |
+| **Linux** | Standalone (선택). Steam 출시 시 가산점 |
+
+- 개발 내내 **Unity Editor 플레이 모드**에서 로직 검증 → 마일스톤마다 실제 빌드(.exe 등)로 확인
+- 배포처: **Steam**(인디 표준, Steamworks 수수료) 또는 **itch.io**(무료/간편, 인디 친화적). MVP·테스트는 itch.io가 부담 없음
+- (선택) GitHub Actions로 빌드 자동화
 
 ---
 
@@ -229,19 +236,23 @@ IWeaponBehaviour (인터페이스)          ← Attack(), UseSkill(), OnEquip(),
 ---
 
 ## 11. 처음이라면 — 권장 학습/진행 순서
+
 1. **공식 2D 입문**: Unity Learn의 2D 튜토리얼로 씬/프리팹/컴포넌트 감 잡기 (1~2일)
-2. **작게 시작**: 화면에서 캐릭터를 움직이고 → 화살 하나 쏘는 것부터. 전체 시스템을 한 번에 짜지 말 것
-3. **수직 슬라이스 우선**: Phase 1을 "허접해도 끝까지 도는 한 판"으로 만들고, 그 위에 살을 붙이기
-4. **데이터부터 하드코딩 금지**: 무기 수치는 처음부터 ScriptableObject로. 나중에 밸런싱이 압도적으로 편함
-5. **Git 커밋 자주**: Unity는 깨지기 쉬우니 동작하는 지점마다 커밋
+2. **Editor와 Cursor의 역할 분담 체득**: 무엇을 에디터에서 하고 무엇을 코드로 하는지 익히기 (2.4절)
+3. **작게 시작**: 화면에서 캐릭터를 움직이고 → 화살 하나 쏘는 것부터. 전체 시스템을 한 번에 짜지 말 것
+4. **수직 슬라이스 우선**: Phase 1을 "허접해도 끝까지 도는 한 판"으로 만들고, 그 위에 살을 붙이기
+5. **데이터부터 하드코딩 금지**: 무기 수치는 처음부터 ScriptableObject로. 나중에 밸런싱이 압도적으로 편함
+6. **Git 커밋 자주**: Unity는 깨지기 쉬우니 동작하는 지점마다 커밋
 
 ---
 
 ## 12. 리스크 & 대응
+
 | 리스크 | 대응 |
 |---|---|
-| 픽셀아트가 화면에서 뭉개짐 | 2.2절 규칙 엄수, PPU 통일, Pixel Perfect Camera |
+| 픽셀아트가 화면에서 뭉개짐 | 2.3절 규칙 엄수, PPU 통일, Pixel Perfect Camera |
 | 무기 5종 메커니즘이 코드를 스파게티로 만듦 | `IWeaponBehaviour` 인터페이스로 격리, 무기 간 직접 참조 금지 |
-| 모바일에서 끊김(GC) | 투사체/사운드 풀링, `Update` 최소화, 실기 Profiling |
+| 이펙트/투사체 과다로 프레임 드랍(GC) | 투사체/사운드 풀링, `Update` 최소화, Profiling |
+| Cursor에서 C# 자동완성이 안 잡힘 | `.NET SDK` 설치 + OmniSharp 기반 C# 확장, Unity가 `.csproj` 생성하도록 External Tools 설정 |
 | 보스 패턴 구현 복잡 | 패턴을 작은 단위로 쪼개고 Coroutine으로 순차 연출 |
 | 범위(스코프) 과욕 | MVP는 무기 2종·스테이지 1개로 못박고, 재미 확인 후 확장 |
