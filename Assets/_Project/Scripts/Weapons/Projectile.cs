@@ -14,21 +14,27 @@ public class Projectile : MonoBehaviour
     [SerializeField] private float lifetime = 3f;
 
     private Rigidbody2D _rb;
+    private GameObject _owner; // 이 투사체를 쏜 주체 (자기 자신은 안 맞힘)
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
     }
 
-    /// <summary>발사. 진행 속도(방향×속력)를 지정한다.</summary>
-    public void Launch(Vector2 velocity)
+    /// <summary>발사. 진행 속도(방향×속력)와 쏜 주체를 지정한다.</summary>
+    public void Launch(Vector2 velocity, GameObject owner)
     {
+        _owner = owner;
         _rb.linearVelocity = velocity;
         Destroy(gameObject, lifetime);
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        // 쏜 주체(주인)와 그 자식은 무시 → 자기 화살에 자기가 맞는 것 방지
+        if (_owner != null && (other.gameObject == _owner || other.transform.IsChildOf(_owner.transform)))
+            return;
+
         if (other.TryGetComponent<IDamageable>(out var target))
         {
             target.TakeDamage(damage);

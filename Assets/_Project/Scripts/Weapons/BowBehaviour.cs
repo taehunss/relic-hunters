@@ -34,7 +34,7 @@ public class BowBehaviour : MonoBehaviour, IWeaponBehaviour
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg; // 화살이 진행 방향을 바라보게 회전
 
         Projectile arrow = Instantiate(arrowPrefab, spawnPos, Quaternion.Euler(0f, 0f, angle));
-        arrow.Launch(dir * arrowSpeed);
+        arrow.Launch(dir * arrowSpeed, gameObject); // gameObject = 이 무기를 든 플레이어
         Debug.Log("활 발사!");
     }
 
