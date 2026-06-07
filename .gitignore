@@ -42,3 +42,6 @@ sysinfo.txt
 
 # Crashlytics
 crashlytics-build.properties
+
+# 임시 Unity 배치/실행 로그 (루트)
+/.unity-*.log
