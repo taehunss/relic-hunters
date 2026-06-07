@@ -14,6 +14,13 @@ public class Health : MonoBehaviour, IDamageable
     [SerializeField] private Color hitColor = Color.red;
     [SerializeField] private float hitFlashDuration = 0.08f;
 
+    [Header("사망 처리")]
+    [Tooltip("죽으면 오브젝트를 제거할지 (적=true, 플레이어=false 권장)")]
+    [SerializeField] private bool destroyOnDeath = true;
+
+    /// <summary>사망 시 호출되는 이벤트 (게임오버/드롭 등에 연결).</summary>
+    public event System.Action Died;
+
     private int _currentHealth;
     private SpriteRenderer _sprite;
     private Color _originalColor;
@@ -54,7 +61,7 @@ public class Health : MonoBehaviour, IDamageable
     private void Die()
     {
         Debug.Log($"{name} 사망");
-        // TODO: 사망 연출/드롭 처리. 지금은 단순히 제거.
-        Destroy(gameObject);
+        Died?.Invoke();
+        if (destroyOnDeath) Destroy(gameObject);
     }
 }
