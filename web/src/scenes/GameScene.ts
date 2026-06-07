@@ -29,6 +29,8 @@ export class GameScene extends Phaser.Scene {
 
   preload() {
     this.makePlaceholderTextures();
+    // 주인공 Kael — 정적 idle 프레임 (애니메이션 시트는 정규화 후 추가 예정)
+    this.load.image('kael', 'assets/kael/kael-idle.png');
   }
 
   create() {
@@ -103,8 +105,11 @@ export class GameScene extends Phaser.Scene {
     // 공격
     this.attackCooldown -= delta;
     if (Phaser.Input.Keyboard.JustDown(k.C) && this.attackCooldown <= 0) {
-      if (this.currentWeapon === 'blade') this.meleeAttack();
-      else this.shootArrow();
+      if (this.currentWeapon === 'blade') {
+        this.meleeAttack();
+      } else {
+        this.shootArrow();
+      }
       this.attackCooldown = 250;
     }
 
@@ -118,13 +123,9 @@ export class GameScene extends Phaser.Scene {
   // ---------- 무기 ----------
 
   private meleeAttack() {
-    const range = 64;
-    const cx = this.player.x + this.player.facing * 34;
+    const range = 80;
+    const cx = this.player.x + this.player.facing * 44;
     const cy = this.player.y;
-
-    // 휘두름 표시
-    const slash = this.add.rectangle(cx, cy, range, 54, 0xffffff, 0.25);
-    this.time.delayedCall(80, () => slash.destroy());
 
     this.enemies.getChildren().forEach((obj) => {
       const e = obj as Enemy;
